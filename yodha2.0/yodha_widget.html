@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#020912">
+<title>Yodha — ISRO AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg0:#020912; --bg1:#07101f; --bg2:#0c1828; --bg3:#111f33; --bg4:#162640;
+  --acc:#00d4ff; --acc2:#ff6b00; --grn:#00ff88; --red:#ff3d5a; --gold:#e8b400;
+  --t1:#e8f4fd; --t2:#7ba8c8; --t3:#3d6680;
+  --bdr:rgba(0,212,255,0.14); --bdr2:rgba(0,212,255,0.28);
+  --r-sm:8px; --r-md:12px; --r-lg:18px; --r-xl:24px;
+  --font-disp:'Orbitron',monospace; --font-mono:'Share Tech Mono',monospace; --font-body:'Rajdhani',system-ui,sans-serif;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{height:100%;overflow:hidden;}
+body{
+  height:100%; background:var(--bg0); color:var(--t1); font-family:var(--font-body);
+  font-size:15px; line-height:1.5; overflow:hidden; -webkit-font-smoothing:antialiased;
+  display:flex; justify-content:center;
+}
+* { scrollbar-width:thin; scrollbar-color:var(--t3) transparent; }
+
+.app{
+  width:100%; max-width:560px; height:100vh; height:100dvh;
+  display:flex; flex-direction:column;
+  background:var(--bg1);
+  border-left:1px solid var(--bdr); border-right:1px solid var(--bdr);
+  position:relative; overflow:hidden;
+}
+
+/* ── Header ── */
+.topbar{
+  flex:0 0 auto; display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px; padding-top:calc(12px + var(--safe-top));
+  background:var(--bg1); border-bottom:1px solid var(--bdr); position:relative; z-index:50;
+}
+.brand{display:flex; align-items:center; gap:10px;}
+.mark{width:34px;height:34px;background:var(--bg3);border:1px solid var(--bdr2);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.mark svg{width:20px;height:20px;}
+.brand-text{line-height:1.1;}
+.brand-name{font-family:var(--font-disp);font-weight:900;font-size:15px;color:var(--acc);letter-spacing:2.5px;}
+.brand-sub{font-family:var(--font-mono);font-size:8px;color:var(--t3);letter-spacing:1.3px;margin-top:2px;}
+.hdr-right{display:flex;align-items:center;gap:8px;}
+.status-pill{display:flex;align-items:center;gap:5px;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);border-radius:20px;padding:4px 10px;font-family:var(--font-mono);font-size:9px;color:var(--grn);letter-spacing:1px;}
+.status-dot{width:5px;height:5px;border-radius:50%;background:var(--grn);animation:blink 2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.25;}}
+.hdr-btn{width:30px;height:30px;border:1px solid var(--bdr);border-radius:var(--r-sm);background:var(--bg2);color:var(--t2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .2s,color .2s;}
+.hdr-btn svg{width:15px;height:15px;}
+.hdr-btn:hover,.hdr-btn.active{border-color:var(--bdr2);color:var(--acc);}
+.hdr-btn.tts-on{color:var(--acc);} .hdr-btn.tts-off{color:var(--t3);}
+.hdr-btn.speaking{color:var(--red);border-color:rgba(255,61,90,0.4);}
+
+/* ── Telemetry strip ── */
+.telemetry{
+  flex:0 0 auto; display:grid; grid-template-columns:repeat(4,1fr);
+  background:var(--bg2); border-bottom:1px solid var(--bdr);
+}
+.tcell{padding:10px 6px;text-align:center;border-right:1px solid rgba(255,255,255,0.03);}
+.tcell:last-child{border-right:none;}
+.tlabel{font-family:var(--font-mono);font-size:8px;color:var(--t3);letter-spacing:1px;margin-bottom:3px;}
+.tval{font-family:var(--font-mono);font-size:12px;color:var(--acc);letter-spacing:0.3px;}
+
+/* ── Tabs ── */
+.tabs{
+  flex:0 0 auto; display:flex; gap:4px; margin:12px 16px; padding:4px;
+  background:var(--bg3); border:1px solid var(--bdr); border-radius:24px;
+}
+.tab{
+  flex:1; border:none; background:transparent; color:var(--t2);
+  font-family:var(--font-body); font-weight:700; font-size:11.5px; letter-spacing:0.6px;
+  padding:10px 6px; border-radius:20px; cursor:pointer; transition:all .2s;
+}
+.tab.active{ background:linear-gradient(135deg,#2f6bff,#5b8cff); color:#fff; box-shadow:0 2px 10px rgba(47,107,255,0.4); }
+
+/* ── Tab panels ── */
+.tabpanel{ flex:0 1 auto; overflow-y:auto; padding:4px 16px 14px; max-height:44vh; }
+.tabpanel.hidden{ display:none; }
+
+/* Radar */
+.radar-wrap{ display:flex; justify-content:center; padding:6px 0 10px; }
+.radar{ width:200px; height:200px; display:block; }
+.ring-outer{ fill:none; stroke:rgba(0,212,255,0.26); stroke-width:1; }
+.ring-inner{ fill:none; stroke:rgba(0,212,255,0.15); stroke-width:1; stroke-dasharray:3 4; }
+.crosshair{ stroke:rgba(0,212,255,0.13); stroke-width:1; }
+.bearing-group{ transform-origin:100px 100px; animation:radarSweep 9s linear infinite; }
+.bearing-line{ stroke:var(--acc); stroke-width:1.4; opacity:0.5; }
+@keyframes radarSweep{ to{ transform:rotate(360deg); } }
+.target-line{ stroke:var(--grn); stroke-width:1.1; stroke-dasharray:4 3; opacity:0.8; }
+.craft-body{ fill:rgba(30,90,190,0.35); stroke:#4d8bff; stroke-width:1.4; }
+.craft-marker{ fill:var(--red); }
+.target-blip{ fill:var(--acc); filter:drop-shadow(0 0 5px rgba(0,212,255,0.85)); animation:blipPulse 1.6s ease-in-out infinite; }
+@keyframes blipPulse{ 0%,100%{ r:5.5; opacity:1; } 50%{ r:7.5; opacity:0.55; } }
+
+.field-label{ font-family:var(--font-mono); font-size:10px; letter-spacing:1.5px; color:var(--t2); margin:6px 0 8px; }
+.select-wrap{ position:relative; }
+.select-wrap select{
+  width:100%; appearance:none; -webkit-appearance:none; background:var(--bg3);
+  border:1px solid var(--bdr2); border-radius:var(--r-md); padding:12px 38px 12px 14px;
+  color:var(--t1); font-family:var(--font-body); font-weight:600; font-size:14px; cursor:pointer;
+}
+.select-wrap svg{ position:absolute; right:14px; top:50%; transform:translateY(-50%); width:14px; height:14px; pointer-events:none; color:var(--acc); }
+
+/* Weather gauges */
+.gauge{ margin-bottom:16px; }
+.glabel{ font-family:var(--font-mono); font-size:10px; letter-spacing:1px; color:var(--t2); margin-bottom:10px; }
+.gtrack{ position:relative; height:5px; background:var(--bg3); border-radius:4px; }
+.gfill{ position:absolute; left:0; top:0; height:100%; width:0%; background:linear-gradient(90deg,#2f6bff,var(--acc)); border-radius:4px; transition:width .5s; }
+.gthumb{ position:absolute; top:50%; left:0%; width:16px; height:16px; background:var(--acc); border:3px solid var(--bg1); border-radius:50%; transform:translate(-50%,-50%); transition:left .5s; box-shadow:0 0 8px rgba(0,212,255,0.6); }
+.grange{ display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:10px; color:var(--t3); margin-top:6px; }
+
+.wx-chips{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:12px; }
+.chip{ background:var(--bg2); border:1px solid var(--bdr); border-radius:var(--r-sm); padding:8px 10px; display:flex; justify-content:space-between; align-items:center; }
+.chip .ck{ font-family:var(--font-mono); font-size:9px; color:var(--t3); letter-spacing:0.5px; }
+.chip .cv{ font-family:var(--font-mono); font-size:11px; color:var(--t1); }
+
+.verdict-box{ border-radius:var(--r-md); padding:12px 14px; margin-bottom:10px; border:1px solid; }
+.verdict-go{ background:rgba(0,255,136,0.07); border-color:rgba(0,255,136,0.25); }
+.verdict-warn{ background:rgba(232,180,0,0.07); border-color:rgba(232,180,0,0.3); }
+.verdict-nogo{ background:rgba(255,61,90,0.07); border-color:rgba(255,61,90,0.25); }
+.verdict-label{ font-family:var(--font-disp); font-size:12px; font-weight:700; letter-spacing:1.5px; margin-bottom:5px; }
+.verdict-go .verdict-label{ color:var(--grn); } .verdict-warn .verdict-label{ color:var(--gold); } .verdict-nogo .verdict-label{ color:var(--red); }
+.verdict-issues{ font-size:11.5px; color:var(--t2); line-height:1.8; white-space:pre-line; }
+.verdict-score{ font-family:var(--font-mono); font-size:9px; color:var(--t3); margin-top:4px; }
+
+.refresh-btn{ display:flex; align-items:center; gap:6px; justify-content:center; width:100%; padding:9px; background:var(--bg3); border:1px solid var(--bdr); border-radius:var(--r-sm); color:var(--t2); font-family:var(--font-mono); font-size:10px; letter-spacing:0.5px; cursor:pointer; }
+.refresh-btn svg{ width:12px; height:12px; } .refresh-btn:hover{ border-color:var(--bdr2); color:var(--acc); }
+.refresh-btn.spinning svg{ animation:spin 1s linear infinite; } @keyframes spin{ to{ transform:rotate(360deg); } }
+
+/* Feed */
+.news-card{ background:var(--bg2); border:1px solid var(--bdr); border-radius:var(--r-md); padding:12px 14px; margin-bottom:8px; cursor:pointer; transition:border-color .2s; }
+.news-card:hover{ border-color:var(--bdr2); }
+.news-tag{ font-family:var(--font-mono); font-size:8.5px; color:var(--acc2); letter-spacing:1px; margin-bottom:4px; }
+.news-title{ font-size:12.5px; color:var(--t1); font-weight:500; line-height:1.5; margin-bottom:3px; }
+.news-meta{ font-family:var(--font-mono); font-size:8.5px; color:var(--t3); }
+
+/* ── Chat log ── */
+.chatlog{
+  flex:1 1 auto; min-height:0; overflow-y:auto; padding:12px 16px;
+  border-top:1px solid var(--bdr); background:var(--bg0);
+  display:flex; flex-direction:column; gap:8px;
+}
+.logline{ font-family:var(--font-mono); font-size:12.5px; line-height:1.7; }
+.logline .prefix{ font-weight:700; }
+.logline.bot .prefix{ color:var(--acc); } .logline.bot .ltext{ color:var(--t1); white-space:pre-wrap; }
+.logline.user{ text-align:right; } .logline.user .prefix{ color:var(--acc2); } .logline.user .ltext{ color:var(--t1); }
+.typing-dots{ display:inline-flex; gap:3px; vertical-align:middle; }
+.typing-dots span{ width:4px;height:4px;border-radius:50%;background:var(--acc); animation:typeDot 1.1s ease-in-out infinite; }
+.typing-dots span:nth-child(2){ animation-delay:0.18s; } .typing-dots span:nth-child(3){ animation-delay:0.36s; }
+@keyframes typeDot{ 0%,60%,100%{ transform:translateY(0); opacity:0.3; } 30%{ transform:translateY(-4px); opacity:1; } }
+
+/* ── Chat bar ── */
+.chatbar{
+  flex:0 0 auto; display:flex; align-items:center; gap:8px;
+  padding:10px 12px; padding-bottom:calc(10px + var(--safe-bot));
+  background:var(--bg1); border-top:1px solid var(--bdr);
+}
+.chatbar input{
+  flex:1; background:var(--bg3); border:1px solid var(--bdr); border-radius:22px;
+  padding:11px 16px; color:var(--t1); font-family:var(--font-body); font-size:13.5px; outline:none;
+}
+.chatbar input::placeholder{ color:var(--t3); }
+.chatbar input:focus{ border-color:rgba(0,212,255,0.35); }
+.mic-btn{ width:40px;height:40px;border-radius:50%;border:1px solid var(--bdr);background:var(--bg3);color:var(--t2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.mic-btn svg{ width:16px;height:16px; } .mic-btn:hover{ border-color:var(--bdr2); color:var(--acc); }
+.mic-btn.mic-on{ border-color:rgba(255,61,90,0.5); color:var(--red); background:rgba(255,61,90,0.1); animation:micPulse 1.2s ease-in-out infinite; }
+@keyframes micPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(255,61,90,0.3); } 50%{ box-shadow:0 0 0 6px rgba(255,61,90,0); } }
+.send-btn{
+  padding:0 20px; height:40px; border:none; border-radius:22px;
+  background:linear-gradient(135deg,#2f6bff,#5b8cff); color:#fff;
+  font-family:var(--font-body); font-weight:700; font-size:12.5px; letter-spacing:0.8px; cursor:pointer; flex-shrink:0;
+}
+.send-btn:hover{ filter:brightness(1.08); }
+
+/* ── Voice overlay ── */
+.voice-overlay{ display:none; position:absolute; inset:0; background:rgba(2,9,18,0.94); z-index:200; flex-direction:column; align-items:center; justify-content:center; gap:18px; }
+.voice-overlay.show{ display:flex; }
+.vo-waves{ display:flex; align-items:center; gap:5px; height:48px; }
+.vo-waves span{ display:block; width:5px; background:var(--acc); border-radius:3px; animation:voWave .75s ease-in-out infinite; }
+.vo-waves span:nth-child(1){ height:14px; animation-delay:0s; } .vo-waves span:nth-child(2){ height:28px; animation-delay:.1s; }
+.vo-waves span:nth-child(3){ height:44px; animation-delay:.2s; } .vo-waves span:nth-child(4){ height:28px; animation-delay:.3s; }
+.vo-waves span:nth-child(5){ height:14px; animation-delay:.4s; }
+@keyframes voWave{ 0%,100%{ transform:scaleY(.4); opacity:.4; } 50%{ transform:scaleY(1); opacity:1; } }
+.vo-label{ font-family:var(--font-disp); font-size:12px; color:var(--acc); letter-spacing:2px; }
+.vo-transcript{ font-size:13px; color:var(--t1); text-align:center; max-width:260px; min-height:18px; }
+.vo-cancel{ padding:8px 26px; background:rgba(255,61,90,0.1); border:1px solid rgba(255,61,90,0.35); border-radius:var(--r-sm); color:var(--red); font-family:var(--font-mono); font-size:10px; cursor:pointer; }
+
+/* ── Toast ── */
+.toast{ position:absolute; bottom:80px; left:50%; transform:translateX(-50%) translateY(10px); background:var(--bg4); border:1px solid var(--bdr2); border-radius:var(--r-md); padding:8px 16px; font-family:var(--font-mono); font-size:10.5px; color:var(--t1); white-space:nowrap; opacity:0; pointer-events:none; transition:all .25s ease; z-index:300; }
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+.chatlog::-webkit-scrollbar,.tabpanel::-webkit-scrollbar{ width:3px; }
+.chatlog::-webkit-scrollbar-thumb,.tabpanel::-webkit-scrollbar-thumb{ background:var(--t3); border-radius:2px; }
+</style>
+</head>
+<body>
+<div class="app" id="appRoot">
+
+  <!-- HEADER -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5">
+          <ellipse cx="12" cy="12" rx="10" ry="4" stroke-opacity="0.5"/>
+          <circle cx="12" cy="12" r="2.5" fill="#00d4ff" stroke="none"/>
+          <circle cx="19" cy="7" r="1.5" fill="#ff6b00" stroke="none"/>
+          <path d="M12 2v3M12 19v3" stroke-opacity="0.3"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-name">YODHA</div>
+        <div class="brand-sub">ISRO AI SYSTEM</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="status-pill"><div class="status-dot"></div>ONLINE</div>
+      <button class="hdr-btn" id="pauseBtn" onclick="togglePause()" title="Pause/resume speech" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="pauseIcon">
+          <rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>
+        </svg>
+      </button>
+      <button class="hdr-btn tts-on" id="speakerBtn" onclick="toggleTTS()" title="Toggle voice">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" id="snd-waves"/>
+        </svg>
+      </button>
+      <button class="hdr-btn" onclick="resetSession()" title="New session">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- TELEMETRY -->
+  <div class="telemetry">
+    <div class="tcell"><div class="tlabel">LATITUDE</div><div class="tval" id="telLat">--</div></div>
+    <div class="tcell"><div class="tlabel">LONGITUDE</div><div class="tval" id="telLon">--</div></div>
+    <div class="tcell"><div class="tlabel">ALTITUDE</div><div class="tval" id="telAlt">--</div></div>
+    <div class="tcell"><div class="tlabel">VELOCITY</div><div class="tval" id="telVel">--</div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" id="tabbtn-sat" onclick="switchTab('sat')">SAT TRACKER</button>
+    <button class="tab" id="tabbtn-wx" onclick="switchTab('wx')">WEATHER LAUNCH</button>
+    <button class="tab" id="tabbtn-feed" onclick="switchTab('feed')">MISSION FEED</button>
+  </div>
+
+  <!-- SAT TRACKER TAB -->
+  <div class="tabpanel" id="tab-sat">
+    <div class="radar-wrap">
+      <svg class="radar" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="92" class="ring-outer"/>
+        <circle cx="100" cy="100" r="60" class="ring-inner"/>
+        <line x1="8" y1="100" x2="192" y2="100" class="crosshair"/>
+        <line x1="100" y1="8" x2="100" y2="192" class="crosshair"/>
+        <g class="bearing-group"><line x1="100" y1="100" x2="100" y2="16" class="bearing-line"/></g>
+        <line id="targetLine" x1="100" y1="100" x2="64" y2="64" class="target-line"/>
+        <polygon points="100,82 111,127 89,127" class="craft-body"/>
+        <rect x="95" y="123" width="10" height="7" class="craft-marker"/>
+        <circle id="targetBlip" cx="64" cy="64" r="5.5" class="target-blip"/>
+      </svg>
+    </div>
+    <div class="field-label">SELECT TARGET SPACE ELEMENT:</div>
+    <div class="select-wrap">
+      <select id="targetSelect" onchange="onTargetChange()"></select>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </div>
+
+  <!-- WEATHER LAUNCH TAB -->
+  <div class="tabpanel hidden" id="tab-wx">
+    <div class="gauge">
+      <div class="glabel">SURFACE WIND (KM/H)</div>
+      <div class="gtrack"><div class="gfill" id="windFill"></div><div class="gthumb" id="windThumb"></div></div>
+      <div class="grange"><span>0</span><span>80</span></div>
+    </div>
+    <div class="gauge">
+      <div class="glabel">CLOUD THICKNESS (%)</div>
+      <div class="gtrack"><div class="gfill" id="cloudFill"></div><div class="gthumb" id="cloudThumb"></div></div>
+      <div class="grange"><span>0</span><span>100</span></div>
+    </div>
+    <div class="wx-chips" id="wxChips"></div>
+    <div id="verdictBox" class="verdict-box verdict-go">
+      <div class="verdict-label" id="verdictLabel">LOADING...</div>
+      <div class="verdict-issues" id="verdictIssues"></div>
+      <div class="verdict-score" id="verdictScore"></div>
+    </div>
+    <button class="refresh-btn" id="refreshBtn" onclick="fetchWeather()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+      Refresh weather data
+    </button>
+  </div>
+
+  <!-- MISSION FEED TAB -->
+  <div class="tabpanel hidden" id="tab-feed">
+    <div class="feed-list" id="feedList"></div>
+  </div>
+
+  <!-- CHAT LOG -->
+  <div class="chatlog" id="chatLog"></div>
+
+  <!-- VOICE OVERLAY -->
+  <div class="voice-overlay" id="voiceOverlay">
+    <div class="vo-waves"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="vo-label">LISTENING</div>
+    <div class="vo-transcript" id="voTranscript"></div>
+    <button class="vo-cancel" onclick="stopListening()">Cancel</button>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- CHAT BAR -->
+  <div class="chatbar">
+    <input id="chatInput" placeholder="Ask Yodha about tracking state or metrics..." onkeydown="inputKeydown(event)">
+    <button class="mic-btn" id="micBtn" onclick="toggleMic()" title="Voice input">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/>
+      </svg>
+    </button>
+    <button class="send-btn" onclick="sendChat()">SEND</button>
+  </div>
+
+</div>
+
+<script>
+const OWM_KEY = "47a2f7fb110884c3c5ce1f3bb70c08d8";
+let ttsEnabled = true, isSpeaking = false, isPaused = false, isListening = false;
+let recognition = null, chosenVoice = null;
+
+/* ── Voices ── */
+function pickVoice() {
+  const vs = speechSynthesis.getVoices();
+  if (!vs.length) return;
+  chosenVoice =
+    vs.find(v => v.lang === 'en-IN') ||
+    vs.find(v => v.lang === 'en-GB') ||
+    vs.find(v => v.lang.startsWith('en-US') && /female|zira|hazel/i.test(v.name)) ||
+    vs.find(v => v.lang.startsWith('en')) ||
+    vs[0];
+}
+speechSynthesis.onvoiceschanged = pickVoice;
+pickVoice();
+
+/* ── Toast ── */
+function toast(msg, ms = 2600) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+/* ── TTS ── */
+function speak(text) {
+  if (!ttsEnabled || !text) return;
+  const clean = text
+    .replace(/[\u{1F300}-\u{1FFFF}]/gu, '')
+    .replace(/[•✅❌⚠️ℹ️]/gu, '')
+    .replace(/\n+/g, '. ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  if (!clean) return;
+
+  speechSynthesis.cancel();
+  isPaused = false;
+  const chunks = [];
+  const sentences = clean.match(/[^.!?]+[.!?]*/g) || [clean];
+  let cur = '';
+  for (const s of sentences) {
+    if ((cur + s).length > 160) { if (cur) chunks.push(cur.trim()); cur = s; }
+    else cur += s;
+  }
+  if (cur.trim()) chunks.push(cur.trim());
+  speakChunks(chunks, 0);
+}
+function speakChunks(chunks, i) {
+  if (i >= chunks.length) { isSpeaking = false; isPaused = false; updateSpeakerBtn(); return; }
+  const u = new SpeechSynthesisUtterance(chunks[i]);
+  if (chosenVoice) u.voice = chosenVoice;
+  u.lang = chosenVoice?.lang || 'en-IN';
+  u.rate = 0.92; u.pitch = 1.05; u.volume = 1;
+  u.onstart = () => { isSpeaking = true; isPaused = false; updateSpeakerBtn(); };
+  u.onend   = () => setTimeout(() => speakChunks(chunks, i+1), 60);
+  u.onerror = () => speakChunks(chunks, i+1);
+  speechSynthesis.speak(u);
+}
+function stopSpeaking() { speechSynthesis.cancel(); isSpeaking = false; isPaused = false; updateSpeakerBtn(); }
+function togglePause() {
+  if (!isSpeaking) return;
+  if (isPaused) { speechSynthesis.resume(); isPaused = false; toast('Resumed'); }
+  else { speechSynthesis.pause(); isPaused = true; toast('Paused'); }
+  updateSpeakerBtn();
+}
+function toggleTTS() {
+  if (isSpeaking) { stopSpeaking(); return; }
+  ttsEnabled = !ttsEnabled; updateSpeakerBtn(); toast(ttsEnabled ? 'Voice ON' : 'Voice OFF');
+}
+function updateSpeakerBtn() {
+  const btn = document.getElementById('speakerBtn'); if (!btn) return;
+  const waves = document.getElementById('snd-waves');
+  btn.className = 'hdr-btn ' + (isSpeaking ? 'speaking' : ttsEnabled ? 'tts-on' : 'tts-off');
+  if (waves) waves.style.display = ttsEnabled && !isSpeaking ? '' : 'none';
+  const pauseBtn = document.getElementById('pauseBtn'), pauseIcon = document.getElementById('pauseIcon');
+  if (pauseBtn) { pauseBtn.style.display = isSpeaking ? 'flex' : 'none'; pauseBtn.classList.toggle('active', isPaused); }
+  if (pauseIcon) {
+    pauseIcon.innerHTML = isPaused
+      ? '<polygon points="6 3 20 12 6 21 6 3"></polygon>'
+      : '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
+  }
+}
+
+/* ── STT ── */
+function toggleMic() { isListening ? stopListening() : startListening(); }
+function startListening() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('Speech recognition requires Chrome or Edge'); return; }
+  stopSpeaking();
+  recognition = new SR();
+  recognition.lang = 'en-IN'; recognition.continuous = false; recognition.interimResults = true;
+  recognition.onstart = () => {
+    isListening = true;
+    document.getElementById('micBtn').classList.add('mic-on');
+    document.getElementById('voiceOverlay').classList.add('show');
+    document.getElementById('voTranscript').textContent = '';
+  };
+  recognition.onresult = (e) => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    document.getElementById('voTranscript').textContent = final || interim;
+    if (final) {
+      document.getElementById('chatInput').value = final;
+      recognition.stop();
+      setTimeout(sendChat, 250);
+    }
+  };
+  recognition.onend = () => {
+    isListening = false;
+    document.getElementById('micBtn').classList.remove('mic-on');
+    document.getElementById('voiceOverlay').classList.remove('show');
+  };
+  recognition.onerror = (e) => {
+    isListening = false;
+    document.getElementById('micBtn').classList.remove('mic-on');
+    document.getElementById('voiceOverlay').classList.remove('show');
+    const msgs = { 'no-speech':'No speech detected, try again', 'not-allowed':'Microphone access denied — allow it in settings', 'network':'Network error — check connection', 'audio-capture':'Microphone not found' };
+    if (msgs[e.error]) toast(msgs[e.error]);
+  };
+  recognition.start();
+}
+function stopListening() {
+  if (recognition) { recognition.stop(); recognition = null; }
+  isListening = false;
+  document.getElementById('micBtn').classList.remove('mic-on');
+  document.getElementById('voiceOverlay').classList.remove('show');
+}
+
+/* ── Tabs ── */
+function switchTab(name) {
+  ['sat','wx','feed'].forEach(n => {
+    document.getElementById('tab-'+n).classList.toggle('hidden', n !== name);
+    document.getElementById('tabbtn-'+n).classList.toggle('active', n === name);
+  });
+  if (name === 'wx') fetchWeather();
+  if (name === 'feed') renderFeed();
+}
+
+/* ── Satellite tracker: target select + radar + telemetry ── */
+const TARGETS = [
+  { name:'ISS (Zarya)', orbit:'Low Earth Orbit', altKm:408, velKmS:7.66 },
+  { name:'CARTOSAT-2', orbit:'Sun-Synchronous Orbit', altKm:635, velKmS:7.55 },
+  { name:'IRNSS-1A', orbit:'Geostationary Orbit', altKm:35800, velKmS:3.07 },
+  { name:'RISAT-2B', orbit:'Low Earth Orbit', altKm:555, velKmS:7.60 },
+  { name:'GSAT-6A', orbit:'Geostationary Orbit', altKm:35786, velKmS:3.07 },
+  { name:'Gaganyaan Crew Module', orbit:'Low Earth Orbit (planned test)', altKm:400, velKmS:7.68 },
+  { name:'Aditya-L1', orbit:'Halo orbit @ Sun-Earth L1', altKm:null, velKmS:null, special:'L1' },
+];
+let currentTargetIdx = 0;
+
+function populateTargetSelect() {
+  const sel = document.getElementById('targetSelect');
+  sel.innerHTML = TARGETS.map((t,i) => `<option value="${i}">${t.name}</option>`).join('');
+  sel.value = currentTargetIdx;
+}
+function onTargetChange() {
+  currentTargetIdx = parseInt(document.getElementById('targetSelect').value, 10);
+  updateTelemetry();
+  const t = TARGETS[currentTargetIdx];
+  logLine('bot', `Now tracking ${t.name} — ${t.orbit}${t.altKm ? `, ~${t.altKm.toLocaleString()} km altitude` : ''}.`);
+}
+function randLat() { const v = Math.random()*140-70; return Math.abs(v).toFixed(4) + '° ' + (v>=0?'N':'S'); }
+function randLon() { const v = Math.random()*360-180; return Math.abs(v).toFixed(4) + '° ' + (v>=0?'E':'W'); }
+function updateTelemetry() {
+  const t = TARGETS[currentTargetIdx];
+  const latEl=document.getElementById('telLat'), lonEl=document.getElementById('telLon'),
+        altEl=document.getElementById('telAlt'), velEl=document.getElementById('telVel');
+  if (t.special === 'L1') {
+    latEl.textContent = 'N/A'; lonEl.textContent = 'N/A';
+    altEl.textContent = '1.5M km'; velEl.textContent = '~0.03 km/s';
+    return;
+  }
+  latEl.textContent = randLat();
+  lonEl.textContent = randLon();
+  altEl.textContent = (t.altKm + (Math.random()*4-2)).toFixed(1) + ' km';
+  velEl.textContent = (t.velKmS + (Math.random()*0.06-0.03)).toFixed(2) + ' km/s';
+}
+setInterval(updateTelemetry, 2500);
+
+function jitterBlip() {
+  const angle = Math.random()*Math.PI*2;
+  const radius = 36 + Math.random()*48;
+  const cx = 100 + Math.cos(angle)*radius, cy = 100 + Math.sin(angle)*radius;
+  const blip = document.getElementById('targetBlip'), line = document.getElementById('targetLine');
+  if (blip) { blip.setAttribute('cx', cx); blip.setAttribute('cy', cy); }
+  if (line) { line.setAttribute('x2', cx); line.setAttribute('y2', cy); }
+}
+setInterval(jitterBlip, 1800);
+
+/* ── Weather ── */
+async function fetchWxData() {
+  try {
+    const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Sriharikota,IN&appid=${OWM_KEY}&units=metric`);
+    if (!r.ok) throw new Error();
+    return await r.json();
+  } catch {
+    return {
+      name: "Sriharikota (est.)",
+      weather: [{ description: "partly cloudy", id: 802 }],
+      main: { temp: 28 + (Math.random()*4-2), humidity: 70 + Math.floor(Math.random()*12), pressure: 1006 + Math.floor(Math.random()*6) },
+      wind: { speed: 3.5 + Math.random()*3.5 },
+      clouds: { all: 25 + Math.floor(Math.random()*35) },
+      visibility: 10000
+    };
+  }
+}
+function assessWx(d) {
+  const wind = d.wind.speed * 3.6;
+  const cloud = d.clouds.all;
+  const vis = (d.visibility || 10000) / 1000;
+  const rain = d.rain ? (d.rain['1h'] || 0) : 0;
+  const thunder = d.weather[0].id >= 200 && d.weather[0].id < 300;
+  let issues = [], score = 100;
+  if (thunder)  { issues.push("Thunderstorm — ABORT"); score -= 60; }
+  if (rain > 2) { issues.push(`Heavy rain: ${rain.toFixed(1)} mm/h`); score -= 30; }
+  else if (rain > 0.3) { issues.push(`Light rain detected`); score -= 12; }
+  if (wind > 55) { issues.push(`Wind critical: ${wind.toFixed(0)} km/h`); score -= 35; }
+  else if (wind > 35) { issues.push(`Elevated wind: ${wind.toFixed(0)} km/h`); score -= 12; }
+  if (cloud > 80) { issues.push(`Heavy cloud cover: ${cloud}%`); score -= 18; }
+  else if (cloud > 60) { issues.push(`Moderate cloud: ${cloud}%`); score -= 7; }
+  if (vis < 3) { issues.push(`Low visibility: ${vis.toFixed(1)} km`); score -= 22; }
+  score = Math.max(0, Math.min(100, score));
+  const verdictText = score >= 80 ? "GO FOR LAUNCH" : score >= 60 ? "MARGINAL — CAUTION" : "NO-GO — HOLD";
+  const cls = score >= 80 ? 'verdict-go' : score >= 60 ? 'verdict-warn' : 'verdict-nogo';
+  return { score, issues, verdictText, cls, wind, cloud, vis, rain };
+}
+async function fetchWeather() {
+  const btn = document.getElementById('refreshBtn');
+  if (btn) btn.classList.add('spinning');
+  const d = await fetchWxData();
+  const a = assessWx(d);
+  const windPct = Math.min(100, (a.wind/80)*100);
+  const cloudPct = Math.min(100, a.cloud);
+  document.getElementById('windFill').style.width = windPct + '%';
+  document.getElementById('windThumb').style.left = windPct + '%';
+  document.getElementById('cloudFill').style.width = cloudPct + '%';
+  document.getElementById('cloudThumb').style.left = cloudPct + '%';
+  document.getElementById('wxChips').innerHTML = [
+    ['TEMP', d.main.temp.toFixed(1) + '°C'],
+    ['HUMIDITY', d.main.humidity + '%'],
+    ['PRESSURE', d.main.pressure + ' hPa'],
+    ['VISIBILITY', a.vis.toFixed(1) + ' km'],
+  ].map(([k,v]) => `<div class="chip"><span class="ck">${k}</span><span class="cv">${v}</span></div>`).join('');
+  const vbox = document.getElementById('verdictBox');
+  vbox.className = 'verdict-box ' + a.cls;
+  document.getElementById('verdictLabel').textContent  = a.verdictText;
+  document.getElementById('verdictIssues').textContent = a.issues.length ? a.issues.join('\n') : 'All parameters nominal.';
+  document.getElementById('verdictScore').textContent  = `Score: ${a.score}/100 | Source: ${d.name}`;
+  if (btn) btn.classList.remove('spinning');
+}
+
+/* ── Mission feed ── */
+function newsItems() {
+  return [
+    { tag: 'LAUNCH', title: 'ISRO successfully tests CE-20 cryogenic engine for Gaganyaan crew module' },
+    { tag: 'MISSION', title: 'Aditya-L1 captures first detailed spectra of solar corona from L1 orbit' },
+    { tag: 'SCIENCE', title: 'Chandrayaan-3 Pragyan rover confirms presence of sulphur near lunar south pole' },
+    { tag: 'COLLAB', title: 'NISAR mission joint ISRO-NASA radar satellite on track for launch' },
+    { tag: 'LAUNCH', title: 'LVM3 rocket manifested for three OneWeb commercial launches this year' },
+    { tag: 'TECH', title: 'SpaDeX space docking experiment demonstrates autonomous rendezvous technology' },
+    { tag: 'SCIENCE', title: 'XPoSat spacecraft delivers first X-ray polarimetry data from cosmic sources' },
+    { tag: 'INFRA', title: 'Third launch pad at Sriharikota cleared for construction' },
+  ];
+}
+function renderFeed() {
+  const list = document.getElementById('feedList');
+  if (list.dataset.rendered) return;
+  list.dataset.rendered = '1';
+  newsItems().forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'news-card';
+    const ts = new Date(); ts.setHours(ts.getHours() - Math.floor(Math.random()*48));
+    const timeStr = ts.toLocaleDateString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+    el.innerHTML = `<div class="news-tag">${item.tag}</div><div class="news-title">${item.title}</div><div class="news-meta">${timeStr}</div>`;
+    el.onclick = () => { document.getElementById('chatInput').value = item.title; sendChat(); };
+    list.appendChild(el);
+  });
+}
+
+/* ── Chat log & engine ── */
+function escHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function logLine(role, text) {
+  const log = document.getElementById('chatLog');
+  const row = document.createElement('div');
+  row.className = 'logline ' + role;
+  const prefix = role === 'bot' ? '[YODHA]: ' : '[YOU]: ';
+  row.innerHTML = `<span class="prefix">${prefix}</span><span class="ltext">${escHtml(text)}</span>`;
+  log.appendChild(row);
+  log.scrollTop = log.scrollHeight;
+}
+function addTypingLine() {
+  const log = document.getElementById('chatLog');
+  const row = document.createElement('div');
+  row.className = 'logline bot'; row.id = 'typingRow';
+  row.innerHTML = `<span class="prefix">[YODHA]: </span><span class="typing-dots"><span></span><span></span><span></span></span>`;
+  log.appendChild(row); log.scrollTop = log.scrollHeight;
+  return row;
+}
+function inputKeydown(e) { if (e.key === 'Enter') { e.preventDefault(); sendChat(); } }
+async function sendChat() {
+  const inp = document.getElementById('chatInput');
+  const text = inp.value.trim();
+  if (!text) return;
+  logLine('user', text);
+  inp.value = '';
+  const typing = addTypingLine();
+  const delay = 500 + Math.random()*500;
+  try {
+    const reply = await getReply(text);
+    setTimeout(() => { typing.remove(); logLine('bot', reply); speak(reply); }, delay);
+  } catch (e) {
+    setTimeout(() => {
+      typing.remove();
+      const err = "Sorry, something went wrong processing that locally. Please try again.";
+      logLine('bot', err); speak(err);
+      console.error('YODHA local engine error:', e);
+    }, delay);
+  }
+}
+function resetSession() {
+  document.getElementById('chatLog').innerHTML = '';
+  logLine('bot', "Jai Hind! I am Yodha, your ISRO Space Mission Assistant. Inquire about current launch conditions, orbital vectors, or recent space updates.");
+  toast('New session started');
+}
+
+/* ── Intent engine (local, fully offline) ── */
+const INTENTS = [
+  { p:/hello|hi\b|hey|namaste|greet/i, r:["Hello! I am Yodha, your ISRO AI assistant. How can I help you today?", "Namaste! Ready to explore space with you!"] },
+  { p:/bye|goodbye|exit|farewell/i, r:["Goodbye! Keep looking up at the stars.", "See you soon! Until next time."] },
+  { p:/thank/i, r:["You're welcome!", "Always here to help!", "Happy to assist!"] },
+  { p:/who are you|what.*you|about yourself|your name/i, r:["I am Yodha, your ISRO AI Command Assistant. I help with satellite tracking, launch conditions, space science, and ISRO mission data. Ask me anything!"] },
+  { p:/pslv|polar satellite launch/i, r:["PSLV (Polar Satellite Launch Vehicle) is ISRO's workhorse rocket. It can carry up to 1,750 kg to sun-synchronous polar orbits. With over 50 successful launches, it carried Chandrayaan-1 and the Mars Orbiter Mission. India's most reliable launch vehicle!"] },
+  { p:/gslv|geosynchronous satellite/i, r:["GSLV (Geosynchronous Satellite Launch Vehicle) is ISRO's heavy-lift rocket. The GSLV Mk III (LVM3) can carry up to 4,000 kg to GTO and 10,000 kg to LEO. It launched Chandrayaan-3!"] },
+  { p:/chandrayaan/i, r:["Chandrayaan is India's lunar exploration programme:\n\nChandrayaan-1 (2008): Discovered water molecules on the Moon.\nChandrayaan-2 (2019): Orbiter still active; lander had a hard landing.\nChandrayaan-3 (2023): Successfully landed on the Moon's south pole on August 23, 2023 — making India the first nation to achieve this!"] },
+  { p:/gaganyaan/i, r:["Gaganyaan is India's first human spaceflight programme! It aims to send 3 astronauts to Low Earth Orbit (~400 km) for a 3-day mission and return safely to Earth. Four astronaut-designates have been selected and trained. It will make India the 4th nation to achieve independent human spaceflight."] },
+  { p:/mangalyaan|mars orbiter|mom isro|india mars/i, r:["Mars Orbiter Mission (Mangalyaan) launched November 5, 2013 and reached Mars on September 24, 2014. India became the first nation to reach Mars orbit in the first attempt — and did it at the lowest cost ever, just 74 million dollars. The mission operated for 8 years, far beyond its 6-month design life."] },
+  { p:/aditya/i, r:["Aditya-L1 is India's first solar mission, launched September 2, 2023. It's positioned at the L1 Lagrange point, 1.5 million km from Earth, providing an uninterrupted view of the Sun 24/7. It studies the Sun's corona, solar flares, and coronal mass ejections."] },
+  { p:/isro.*history|founded|established.*isro/i, r:["ISRO was established on August 15, 1969 by Dr. Vikram Sarabhai. India's first rocket launch was in 1963 from Thumba — parts were carried by bicycle and bullock cart! ISRO launched its first satellite, Aryabhata, in 1975. Today it's among the world's top 5 space agencies."] },
+  { p:/vikram sarabhai|father.*space/i, r:["Dr. Vikram Sarabhai is the Father of the Indian Space Programme. Born August 12, 1919, he founded ISRO with the vision that space technology should serve the common person. He also established IIM Ahmedabad. He passed away on December 30, 1971, but his legacy lives on in every ISRO mission."] },
+  { p:/kalam|missile man/i, r:["Dr. APJ Abdul Kalam, the Missile Man of India, was a key architect of India's space and missile programmes. He led development of SLV-3, India's first indigenous satellite launch vehicle. He later became India's 11th President (2002-2007) and inspired millions with his book Wings of Fire."] },
+  { p:/escape velocity/i, r:["Escape velocity from Earth is 11.2 km/s (about 40,270 km/h). Formula: v = sqrt(2GM/R). Moon: 2.4 km/s. Mars: 5.0 km/s. Jupiter: 59.5 km/s. Sun: 617.7 km/s. This is the minimum speed needed to escape a body's gravity without further propulsion."] },
+  { p:/orbital velocity/i, r:["Orbital velocity formula: v = sqrt(GM/R). For the ISS at 400 km altitude, that's about 7.7 km/s (27,600 km/h). For geostationary orbit at 35,786 km, it drops to about 3.1 km/s. Lower orbits require faster speeds to maintain orbit!"] },
+  { p:/kepler/i, r:["Kepler's Three Laws of Planetary Motion:\n1. Ellipses: Planets orbit in ellipses with the Sun at one focus.\n2. Equal Areas: A line from planet to Sun sweeps equal areas in equal time (faster near Sun).\n3. Periods: T squared is proportional to a cubed — the square of the orbital period equals the cube of the semi-major axis."] },
+  { p:/newton.*law|law.*motion/i, r:["Newton's Three Laws:\n1. Inertia: An object stays at rest or in motion unless acted on by a force.\n2. F = ma: Force equals mass times acceleration.\n3. Action-Reaction: Every action has an equal and opposite reaction — this is what makes rockets work!"] },
+  { p:/rocket equation|tsiolkovsky|delta.?v/i, r:["The Tsiolkovsky Rocket Equation: delta-v = ve times ln(m0/mf). Where ve is exhaust velocity, m0 is initial mass, and mf is final mass. This fundamental equation tells us how much fuel a rocket needs. More delta-v needed means exponentially more fuel — which is why staging is so important!"] },
+  { p:/black hole/i, r:["Black holes are regions where gravity is so strong that nothing, not even light, can escape. They form when massive stars collapse. Key concepts: the event horizon is the point of no return, the singularity is the theoretical infinitely dense center. Stephen Hawking predicted they slowly evaporate via Hawking radiation. The first black hole image was captured by the Event Horizon Telescope in 2019!"] },
+  { p:/dark matter|dark energy/i, r:["The universe's composition: 68% dark energy (causing accelerating expansion), 27% dark matter (invisible but detectable by gravity), and only 5% normal matter — everything we can see and touch. Dark matter holds galaxies together; dark energy is tearing the universe apart!"] },
+  { p:/iss|space station|international space/i, r:["The International Space Station orbits at about 408 km altitude, travelling at 7.7 km/s. It completes 16 orbits of Earth every day! Continuously crewed since November 2, 2000. It's as wide as a football field at 109 metres. Switch to the Sat Tracker tab to track its current position!"] },
+  { p:/satellite.*above|overhead.*sat|satellites.*overhead/i, r:["Satellites currently tracked above:\n1. CARTOSAT-2 (ISRO) — Earth observation\n2. RISAT-2B (ISRO) — Radar imaging\n3. Starlink cluster (SpaceX)\n4. RESOURCESAT-2A (ISRO)\n5. OneWeb constellation\n\nSwitch to the Sat Tracker tab for real-time tracking!"] },
+  { p:/speed of light|planck|gravitational constant|physical constant/i, r:["Key physical constants:\nSpeed of light (c): 299,792,458 m/s\nPlanck constant (h): 6.626 x 10^-34 J.s\nGravitational constant (G): 6.674 x 10^-11 N.m2/kg2\nBoltzmann constant (k): 1.38 x 10^-23 J/K\nAvogadro's number: 6.022 x 10^23 per mol"] },
+  { p:/space.*debris|orbital.*junk|kessler/i, r:["Space debris is a growing problem — over 27,000 tracked objects orbit Earth at 7-8 km/s. Even a paint fleck can damage a spacecraft at that speed. Kessler syndrome describes a cascade where collisions create more debris, eventually making orbits unusable. ISRO's PSLV-C58 included an active debris removal demonstration!"] },
+  { p:/lagrange|l1.*l2|gravitational.*equilib/i, r:["Lagrange points are 5 positions where gravity of two large bodies perfectly balances. L1 is between Earth and Sun, 1.5 million km away — where Aditya-L1 and SOHO are stationed. L2 is behind Earth — home to the James Webb Space Telescope and Gaia. L4 and L5 are stable and contain asteroid clusters called Trojans."] },
+  { p:/nasa/i, r:["NASA (National Aeronautics and Space Administration) was founded October 1, 1958, in the USA. Key missions include Apollo (Moon landings), Voyager (interstellar space), Hubble (space telescope), Mars rovers, and the James Webb Space Telescope. The Artemis programme aims to return humans to the Moon. NASA and ISRO collaborate on several missions!"] },
+  { p:/spacex|elon.*rocket|falcon|starship/i, r:["SpaceX was founded by Elon Musk in 2002. Key vehicles: Falcon 9 (reusable workhorse), Falcon Heavy, and Starship (fully reusable super heavy-lift in development). Dragon capsule carries astronauts to the ISS. Starlink has over 5,000 satellites providing internet coverage. SpaceX revolutionized rocketry with booster landing and reuse!"] },
+  { p:/microgravity|zero gravity|weightless/i, r:["In orbit, astronauts experience microgravity because they're in continuous free fall around Earth — falling at the same rate as their spacecraft creates apparent weightlessness. Effects on the human body include bone density loss of about 1% per month, muscle atrophy, fluid shifts to the upper body, and vision changes. Research in microgravity enables breakthroughs in medicine and materials science!"] },
+  { p:/sslv|small satellite launch vehicle/i, r:["SSLV (Small Satellite Launch Vehicle) is ISRO's compact rocket for the smallsat market. It stands about 34 m tall, can carry up to 500 kg to a 500 km orbit, and is designed to be assembled and launched within days rather than months, at low cost, mainly for commercial rideshare payloads."] },
+  { p:/rlv|reusable launch vehicle|pushpak/i, r:["ISRO's Reusable Launch Vehicle programme (RLV-TD, nicknamed 'Pushpak') is developing a winged, spaceplane-like booster that can fly back and land on a runway, aiming to cut launch costs the way SpaceX's Falcon 9 booster recovery has. It has completed several autonomous landing demonstration tests."] },
+  { p:/semi.?cryo|scr90|semi cryogenic engine/i, r:["ISRO's semi-cryogenic engine programme (SCE-200) uses refined kerosene and liquid oxygen instead of a fully cryogenic hydrogen/oxygen mix. It's being developed to boost the LVM3's payload capacity and is a key step toward future heavy-lift and reusable vehicles."] },
+  { p:/nisar/i, r:["NISAR (NASA-ISRO Synthetic Aperture Radar) is a joint NASA-ISRO Earth observation satellite carrying dual-frequency radar (L-band from NASA, S-band from ISRO). It will map Earth's land and ice surfaces every 12 days to track ecosystem disturbances, ice-sheet collapse, and ground deformation from earthquakes or volcanoes."] },
+  { p:/xposat/i, r:["XPoSat (X-ray Polarimeter Satellite), launched January 1, 2024, is India's first dedicated mission to study the polarisation of X-rays from cosmic sources like black holes, neutron stars and pulsars — only the second such mission in the world after NASA's IXPE."] },
+  { p:/spadex|docking experiment/i, r:["SpaDeX (Space Docking Experiment) is ISRO's twin-satellite mission demonstrating autonomous rendezvous and docking in orbit — a critical technology for future space station assembly, satellite servicing, and crewed missions like Gaganyaan."] },
+  { p:/gaganyaan.*astronaut|astronaut.*gaganyaan|vyommitra/i, r:["Four Indian Air Force test pilots have been trained as Gaganyaan astronaut-designates: Prashanth Nair, Angad Pratap, Ajit Krishnan and Shubhanshu Shukla. Before the crewed flight, ISRO plans uncrewed test flights carrying 'Vyommitra,' a humanoid robot that will monitor cabin systems and simulate crew functions."] },
+  { p:/bharatiya antariksh station|indian space station/i, r:["The Bharatiya Antariksh Station (Indian Space Station) is ISRO's planned modular space station, targeted for initial deployment by 2028 and full assembly around 2035, intended to support long-duration human research and technology demonstration missions in low Earth orbit."] },
+  { p:/insat/i, r:["INSAT (Indian National Satellite System) is a series of multipurpose geostationary satellites providing telecommunications, television broadcasting, weather forecasting, and disaster warning since 1983. It's one of the largest domestic communication satellite systems in the Asia-Pacific region."] },
+  { p:/gsat/i, r:["The GSAT series are ISRO's geostationary communication satellites, providing services like broadband, DTH television, and secure military communication. Notable examples include GSAT-6A (communications) and GSAT-30, which replaced an older INSAT satellite."] },
+  { p:/oceansat/i, r:["Oceansat satellites monitor ocean colour, chlorophyll concentration, and sea surface conditions to support fisheries, coastal zone studies, and cyclone tracking. Oceansat-3, launched in 2022, carries an ocean colour monitor and a sea surface temperature sensor."] },
+  { p:/resourcesat/i, r:["Resourcesat satellites are ISRO's land-use and agricultural monitoring platforms, used for crop forecasting, forest mapping, water resource management, and disaster assessment across India."] },
+  { p:/cartosat/i, r:["Cartosat satellites provide high-resolution panchromatic imagery for cartography, urban planning, infrastructure development and, in later variants, military reconnaissance. Cartosat-3 offers resolution as fine as about 0.25 metres."] },
+  { p:/risat/i, r:["RISAT (Radar Imaging Satellite) satellites use synthetic aperture radar, which can see through clouds and darkness — vital for monitoring during monsoon season, and for border surveillance and disaster response."] },
+  { p:/irnss|navic/i, r:["NavIC (Navigation with Indian Constellation), built from the IRNSS satellite series, is India's own satellite navigation system, providing positioning accurate to about 5-10 metres over India and the surrounding region — similar in purpose to GPS, GLONASS, Galileo and BeiDou."] },
+  { p:/gps.*vs.*navic|navic.*vs.*gps|compare.*navigation.*system/i, r:["GPS (USA), GLONASS (Russia), Galileo (EU), BeiDou (China) and NavIC (India) are the world's major satellite navigation systems. GPS and BeiDou offer global coverage; NavIC currently focuses on India and about 1,500 km beyond its borders, trading global reach for higher regional accuracy."] },
+  { p:/astrosat/i, r:["AstroSat, launched in 2015, is India's first dedicated multi-wavelength space observatory, studying celestial objects simultaneously in visible, ultraviolet, and X-ray bands — comparable in spirit to missions like Hubble."] },
+  { p:/aryabhata/i, r:["Aryabhata was India's first satellite, built by ISRO and launched by the Soviet Union on April 19, 1975. It was designed to conduct experiments in X-ray astronomy, aeronomics, and solar physics, and its launch is often seen as the true start of India's satellite era."] },
+  { p:/rohini/i, r:["The Rohini series were ISRO's early experimental satellites. RS-1, launched by the SLV-3 rocket on July 18, 1980, was the first satellite placed into orbit by an Indian-made launch vehicle, making India the sixth nation to achieve this."] },
+  { p:/slv.?3|first indian rocket|india.*first.*launch vehicle/i, r:["SLV-3 (Satellite Launch Vehicle) was India's first indigenous satellite launch vehicle, developed under Dr. APJ Abdul Kalam's leadership. Its successful 1980 flight, carrying the Rohini satellite, made India the sixth country capable of launching its own satellites."] },
+  { p:/vssc|vikram sarabhai space centre/i, r:["The Vikram Sarabhai Space Centre (VSSC) in Thiruvananthapuram, Kerala, is ISRO's lead centre for launch vehicle design and development, including the PSLV, GSLV, and Gaganyaan crew systems."] },
+  { p:/sdsc|sriharikota|satish dhawan space centre/i, r:["The Satish Dhawan Space Centre (SDSC) at Sriharikota, Andhra Pradesh, is ISRO's primary launch site, chosen for its coastal location near the equator, which helps rockets gain extra velocity from Earth's rotation."] },
+  { p:/iist|indian institute of space/i, r:["The Indian Institute of Space Science and Technology (IIST) in Thiruvananthapuram is India's first dedicated space university, training engineers and scientists specifically for careers at ISRO and the wider space sector."] },
+  { p:/nsil|antrix/i, r:["NewSpace India Limited (NSIL) is ISRO's commercial arm, marketing launch services, transferring ISRO technologies to industry, and building satellites for commercial customers. It succeeded the earlier Antrix Corporation in this role."] },
+  { p:/in-space/i, r:["IN-SPACe (Indian National Space Promotion and Authorisation Centre) is the government body that authorises and supports private companies to carry out space activities in India, opening the sector to firms like Skyroot Aerospace and Agnikul Cosmos."] },
+  { p:/skyroot|agnikul|private.*space.*india|indian.*startup.*rocket/i, r:["India's private space sector has grown rapidly since it opened to industry in 2020. Skyroot Aerospace launched Vikram-S, India's first privately developed rocket, in 2022. Agnikul Cosmos builds 3D-printed rocket engines and small launch vehicles. Both aim to serve the small-satellite launch market alongside ISRO."] },
+  { p:/isro chairman|isro.*head|who.*runs isro|who leads isro/i, r:["ISRO has been led by a succession of chairmen, including Vikram Sarabhai (founder), Satish Dhawan, U.R. Rao, K. Kasturirangan, G. Madhavan Nair, K. Radhakrishnan, A.S. Kiran Kumar, K. Sivan (Chandrayaan-2/3 era), and S. Somanath, who has overseen recent missions including Chandrayaan-3 and Aditya-L1."] },
+  { p:/isro budget|how much.*isro.*cost|isro.*funding/i, r:["ISRO operates on a fraction of the budget of agencies like NASA — roughly 1-1.5 billion US dollars a year in recent years — yet has achieved missions like Mangalyaan for about 74 million dollars, prized for its cost efficiency compared to other space programmes."] },
+  { p:/leo|meo|geo|orbit type|sun.?sync|types of orbit/i, r:["Common orbit types: LEO (Low Earth Orbit, ~160-2,000 km, used by the ISS and most Earth-observation satellites), MEO (Medium Earth Orbit, ~2,000-35,000 km, used by GPS/NavIC), GEO (Geostationary Orbit, ~35,786 km, where a satellite stays fixed over one point on Earth), and Sun-synchronous orbit (a near-polar LEO that crosses the equator at the same local time each day, ideal for imaging satellites)."] },
+  { p:/hohmann|orbital transfer/i, r:["A Hohmann transfer orbit is the most fuel-efficient way to move a spacecraft between two circular orbits, using two engine burns to shift onto an elliptical path connecting them. It's the classic method used for interplanetary and geostationary transfer manoeuvres."] },
+  { p:/re.?entry|heat shield|ablative/i, r:["Spacecraft re-entering Earth's atmosphere face intense friction heating, often above 1,500°C. Heat shields manage this either by ablation (a sacrificial material that chars and erodes, carrying heat away) or by reusable tiles like the Space Shuttle used. ISRO tested its own crew module re-entry with the CARE mission in 2014."] },
+  { p:/rocket stage|multi.?stage rocket|why.*rockets.*stages/i, r:["Rockets are built in stages so that once a stage's fuel is spent, its now-useless weight can be jettisoned, letting the remaining stages accelerate the payload more efficiently. This staging is a direct consequence of the Tsiolkovsky rocket equation — carrying less dead weight means reaching orbit needs far less total fuel."] },
+  { p:/liquid fuel|solid fuel|cryogenic|hypergolic|rocket propellant/i, r:["Rocket propellants vary by mission stage: solid propellants (like in the PSLV's first stage) are simple and powerful but can't be throttled or shut off; liquid propellants can be controlled and restarted; cryogenic propellants (super-cooled liquid hydrogen and oxygen) give the highest efficiency but are hard to store; hypergolic propellants ignite on contact, useful for reliable restarts in orbit."] },
+  { p:/moon phase|lunar phase/i, r:["The Moon goes through 8 phases over about 29.5 days (a lunar month): new moon, waxing crescent, first quarter, waxing gibbous, full moon, waning gibbous, last quarter, and waning crescent — caused by the changing angle between the Sun, Earth, and Moon, not by Earth's shadow."] },
+  { p:/solar eclipse|lunar eclipse/i, r:["A solar eclipse happens when the Moon passes between the Sun and Earth, blocking sunlight in a narrow path on Earth's surface. A lunar eclipse happens when Earth passes between the Sun and Moon, casting its shadow on the Moon — visible from anywhere on the night side of Earth, and much more common to witness."] },
+  { p:/comet/i, r:["Comets are icy bodies from the outer solar system (the Kuiper Belt or Oort Cloud) that develop glowing comas and tails of gas and dust as they near the Sun and its radiation vaporises their surface ice. Famous examples include Halley's Comet, which returns roughly every 76 years."] },
+  { p:/asteroid/i, r:["Asteroids are rocky bodies, mostly found in the asteroid belt between Mars and Jupiter, left over from the solar system's formation. Near-Earth asteroids are tracked closely for potential impact risk; missions like NASA's DART have tested deflecting one by direct impact."] },
+  { p:/exoplanet/i, r:["Exoplanets are planets orbiting stars beyond our Sun. Over 5,000 have been confirmed, mostly detected via the transit method (measuring a star's dip in brightness as a planet passes in front of it) or the radial velocity method (measuring a star's tiny wobble from a planet's gravity)."] },
+  { p:/hubble|james webb|jwst|space telescope/i, r:["The Hubble Space Telescope, launched in 1990, revolutionised optical and ultraviolet astronomy from orbit. The James Webb Space Telescope (JWST), launched in 2021, observes mainly in infrared from the L2 Lagrange point, letting it see further back in cosmic time and through dust clouds that block visible light."] },
+  { p:/gravity assist|slingshot/i, r:["A gravity assist (or slingshot manoeuvre) uses a planet's gravity and motion to change a spacecraft's speed and direction without using fuel. Missions like Voyager and Cassini used multiple gravity assists to reach the outer solar system far more efficiently than a direct trajectory would allow."] },
+  { p:/terminal velocity/i, r:["Terminal velocity is the constant speed a falling object reaches when the downward pull of gravity is exactly balanced by upward air resistance, so it stops accelerating. It depends on the object's mass, shape, and the density of the air it's falling through."] },
+  { p:/atmosphere layer|troposphere|stratosphere|mesosphere|thermosphere|exosphere/i, r:["Earth's atmosphere has five main layers: the troposphere (0-12 km, where weather happens), stratosphere (12-50 km, containing the ozone layer), mesosphere (50-85 km, where most meteors burn up), thermosphere (85-600 km, home to the ISS and auroras), and exosphere (600 km and beyond, fading into space)."] },
+  { p:/neutron star|pulsar/i, r:["A neutron star is the ultra-dense collapsed core left behind after a massive star's supernova — a teaspoon of its material would weigh billions of tonnes. A pulsar is a rapidly spinning neutron star that sweeps beams of radiation past Earth like a lighthouse, detected as extremely regular pulses."] },
+  { p:/supernova/i, r:["A supernova is the explosive death of a massive star, briefly outshining an entire galaxy. It's how the universe seeds space with heavy elements like gold, iron, and uranium — nearly every element heavier than iron in your body was forged in a supernova."] },
+  { p:/galaxy|milky way/i, r:["Galaxies are vast collections of stars, gas, dust and dark matter bound by gravity. Our Milky Way is a barred spiral galaxy containing 100-400 billion stars, about 100,000 light-years across, and is on a slow collision course with the neighbouring Andromeda galaxy in roughly 4-5 billion years."] },
+  { p:/big bang|age of the universe|origin of universe/i, r:["The Big Bang theory describes the universe expanding from an extremely hot, dense state about 13.8 billion years ago. Evidence includes the cosmic microwave background radiation, the observed redshift of distant galaxies, and the relative abundance of light elements like hydrogen and helium."] },
+  { p:/redshift/i, r:["Redshift is the stretching of light waves toward longer, redder wavelengths as their source moves away from us — the light-based version of the Doppler effect for sound. Astronomers use it to measure how fast distant galaxies are receding and, from that, how the universe is expanding."] },
+  { p:/mars.*fact|about mars|planet mars/i, r:["Mars is the fourth planet from the Sun, about half Earth's size, with a thin carbon-dioxide atmosphere, polar ice caps, the largest volcano in the solar system (Olympus Mons), and evidence of ancient rivers and lakes. It's the most explored planet besides Earth, with rovers like Perseverance and Curiosity currently active on its surface."] },
+  { p:/solar system.*planet|planets.*order|how many planets/i, r:["The solar system has eight planets in order from the Sun: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune. Pluto was reclassified as a dwarf planet in 2006 because it hadn't 'cleared its orbital neighbourhood' of other debris."] },
+  { p:/jupiter/i, r:["Jupiter is the solar system's largest planet — a gas giant more than twice as massive as all other planets combined. Its Great Red Spot is a storm that has raged for at least 350 years, and it has at least 95 known moons, including the four large Galilean moons: Io, Europa, Ganymede and Callisto."] },
+  { p:/saturn/i, r:["Saturn is famous for its spectacular ring system, made mostly of ice particles ranging from dust-sized grains to house-sized chunks. It's the least dense planet in the solar system — less dense than water, so it would technically float in a large enough ocean."] },
+  { p:/sun.*fact|about the sun|star.*our sun/i, r:["The Sun is a G-type main-sequence star, about 4.6 billion years old, containing 99.8% of the solar system's mass. Its core reaches about 15 million °C, fusing hydrogen into helium and releasing the energy that powers almost all life on Earth."] },
+  { p:/light.?year/i, r:["A light-year is a unit of distance, not time — the distance light travels in one year, about 9.46 trillion kilometres. The nearest star system to our Sun, Proxima Centauri, is about 4.2 light-years away, meaning its light takes over four years to reach us."] },
+  { p:/parallax/i, r:["Parallax is the apparent shift in a nearby object's position when viewed from two different points — astronomers measure a star's tiny position shift as Earth orbits the Sun to calculate its distance directly, forming the first rung of the cosmic distance ladder."] },
+  { p:/meteor shower|meteoroid/i, r:["Meteor showers happen when Earth passes through debris trails left by comets. The tiny particles (meteoroids) burn up in the atmosphere as bright streaks of light. Well-known showers include the Perseids (August) and Geminids (December)."] },
+  { p:/space station.*(iss|history)|mir|tiangong|skylab/i, r:["Notable space stations include the USA's Skylab (1973-79), the Soviet/Russian Mir (1986-2001), China's Tiangong (operational since 2021), and the International Space Station — a joint project of the US, Russia, Europe, Japan and Canada, continuously crewed since 2000."] },
+  { p:/what can you do|help me|your capabilities|what.*you.*answer/i, r:["I'm Yodha, and I run fully offline — I can answer questions about ISRO missions and history, rockets and propulsion, satellites and navigation systems, astronomy and physics, and I can also check live Sriharikota launch weather or show recent mission news. Try the Sat Tracker, Weather Launch, or Mission Feed tabs, or just ask me anything space-related!"] },
+  { p:/joke|funny/i, r:["Why did the astronaut break up with their partner before the launch? They needed space. (I promise my mission facts are more polished than my jokes!)"] },
+];
+
+const FALLBACK_REPLIES = [
+  "I don't have a built-in answer for that one yet. I can help with ISRO missions and history, rockets and propulsion, satellites and navigation, launch weather, mission news, or general space science — try rephrasing, or ask me about one of those.",
+  "That's outside my current knowledge base. Try asking about a specific ISRO mission (like Chandrayaan-3 or Gaganyaan), a science concept (like black holes or escape velocity), or check the Weather Launch/Mission Feed/Sat Tracker tabs.",
+  "I'm not able to answer that from what I know locally. I'm strongest on ISRO, rockets, satellites and astronomy — ask me something in one of those areas and I'll do my best!"
+];
+function matchIntent(text) {
+  let best = null, bestScore = 0;
+  for (const intent of INTENTS) {
+    const m = text.match(intent.p);
+    if (m && m[0]) { const score = m[0].length; if (score > bestScore) { bestScore = score; best = intent; } }
+  }
+  return best;
+}
+async function getReply(text) {
+  const clean = text.trim();
+  if (/launch.*condition|can we launch|safe.*launch|launch.*today|sriharikota.*(temp|weather)|launch.*weather/i.test(clean)) return await composeWeatherReply();
+  if (/^\s*weather\b|weather.*sriharikota|sriharikota.*weather|current weather/i.test(clean)) return await composeWeatherReply();
+  if (/news|latest.*isro|space.*news|isro.*update/i.test(clean)) return composeNewsReply();
+  const intent = matchIntent(clean);
+  if (intent && intent.r && intent.r.length && intent.r[0]) return intent.r[Math.floor(Math.random()*intent.r.length)];
+  return FALLBACK_REPLIES[Math.floor(Math.random()*FALLBACK_REPLIES.length)];
+}
+async function composeWeatherReply() {
+  try {
+    const d = await fetchWxData();
+    const a = assessWx(d);
+    const lines = [
+      `Live conditions at ${d.name}: ${d.main.temp.toFixed(1)}°C, wind ${a.wind.toFixed(0)} km/h, humidity ${d.main.humidity}%, cloud cover ${d.clouds.all}%, visibility ${a.vis.toFixed(1)} km, pressure ${d.main.pressure} hPa (${d.weather[0].description}).`,
+      `Yodha's launch score: ${a.score}/100 — ${a.verdictText}.`
+    ];
+    lines.push(a.issues.length ? `Flagged issues: ${a.issues.join('; ')}.` : 'No weather issues detected — all parameters nominal.');
+    lines.push('Check the Weather Launch tab for the full live dashboard.');
+    return lines.join('\n');
+  } catch (e) {
+    return "I couldn't fetch live weather data just now. Try the Weather Launch tab directly, or check again shortly.";
+  }
+}
+function composeNewsReply() {
+  const items = newsItems().slice(0, 6);
+  const list = items.map((n, i) => `${i + 1}. [${n.tag}] ${n.title}`).join('\n');
+  return `Here's what's in Yodha's mission news feed:\n${list}\n\nOpen the Mission Feed tab to browse or tap any story.`;
+}
+
+/* ── Init ── */
+populateTargetSelect();
+updateTelemetry();
+jitterBlip();
+fetchWeather();
+logLine('bot', "Jai Hind! I am Yodha, your ISRO Space Mission Assistant. Inquire about current launch conditions, orbital vectors, or recent space updates.");
+</script>
+</body>
+</html>
